@@ -1,0 +1,30 @@
+on:
+  pull_request:
+
+name: Integration tests
+jobs:
+  test_on_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.17.x
+          cache: true
+
+      - name: compile
+        run: go build -o go-ios
+
+      - name: run unit tests
+        run: |
+          tools/device-cli&
+          tools/device-cli -wait
+          ./go-ios list
+          ./go-ios info
+          time ./go-ios screenshot
+        env:
+         USBMUXD_SOCKET_ADDRESS: '127.0.0.1:19000'
+         ORCHESTRATOR_URL: 'https://device-orchestrator-api.onrender.com'
+         API_KEY: ${{ secrets.API_KEY }}
